@@ -4,6 +4,8 @@ import {name as applicationName} from './metadata.json';
 import {app,h} from 'hyperapp';
 import {Box,BoxContainer,Button,Iframe,Menubar,MenubarItem,Tabs,TextField} from '@osjs/gui';
 
+import * as languages from './locales';
+
 const HTMLCollectionIndexOf = (coll,elem) => {
   let elems = [];
   for(let i = 0;i < coll.length;i++) elems[i] = coll[i];
@@ -11,7 +13,7 @@ const HTMLCollectionIndexOf = (coll,elem) => {
 };
 
 class BrowserTab {
-  constructor(url,win,proc,core) {
+  constructor(url,win,proc,core,_) {
     if(url.split(':')[0] == 'about') url = proc.resource('/src/about/'+url.split(':')[1]+'.html');
     else url = proc.resource('/proxy/'+url);
     this.h = h(BoxContainer,{ grow: 1 },[h(Iframe,{
@@ -33,15 +35,17 @@ class BrowserTab {
     this.log = [];
     this.win = win;
     this.url = url;
-    this.title = 'New Tab';
+    this.title = _('NEWTAB');
   }
 }
 
 const register = (core,args,options,metadata) => {
   const proc = core.make('osjs/application',{args,options,metadata});
+  const {translatable} = core.make('osjs/locale');
+  const _ = translatable(languages);
   proc.createWindow({
     id: 'BrowserWindow',
-    title: metadata.title.en_EN,
+    title: _('TITLE'),
 		icon: proc.resource(metadata.icon),
     dimension: {width: 400,height: 400},
     position: {left: 700,top: 200}
@@ -50,13 +54,13 @@ const register = (core,args,options,metadata) => {
       url: proc.args.url || 'about:newtab',
       tab: 0,
       tabs: [
-        new BrowserTab(proc.args.url || 'about:newtab',win,proc,core)
+        new BrowserTab(proc.args.url || 'about:newtab',win,proc,core,_)
       ]
     },{
       addTab: () => state => ({
         tabs: [
           ...state.tabs,
-          new BrowserTab('about:newtab',win,proc,core)
+          new BrowserTab('about:newtab',win,proc,core,_)
         ],
         url: state.url,
         tab: state.tab
@@ -70,21 +74,21 @@ const register = (core,args,options,metadata) => {
         };
       },
       loadURL: () => (state,actions) => {
-        state.tabs[state.tab] = new BrowserTab(state.url,win,proc,core);
+        state.tabs[state.tab] = new BrowserTab(state.url,win,proc,core,_);
       },
 			menuFile: ev => (state,actions) => {
 				core.make("osjs/contextmenu").show({
 					position: ev.target,
 					menu: [
-					  { label: 'Refresh', onclick: () => state.tabs[state.tab].window.location.reload() },
+					  { label: _('REFRESH'), onclick: () => state.tabs[state.tab].window.location.reload() },
 					  { type: 'separator' },
-					  { label: 'New Tab', onclick: () => actions.addTab() },
-					  { label: 'Close Tab', onclick: () => {
+					  { label: _('NEWTAB'), onclick: () => actions.addTab() },
+					  { label: _('CLOSETAB'), onclick: () => {
 					    actions.removeTab(state.tab);
 					    if(state.tabs.length == 0) proc.destroy();
 					  } },
 					  { type: 'separator' },
-						{ label: 'Quit', onclick: () => proc.destroy() }
+						{ label: _('QUIT'), onclick: () => proc.destroy() }
 				  ]
 				});
 		  },
@@ -107,8 +111,8 @@ const register = (core,args,options,metadata) => {
 				  core.make("osjs/contextmenu").show({
 					  position: ev.target,
 					  menu: [
-					    { label: 'New Tab', onclick: () => actions.addTab() },
-					    { label: 'Close', onclick: () => actions.removeTab(index) }
+					    { label: _('NEWTAB'), onclick: () => actions.addTab() },
+					    { label: _('CLOSE'), onclick: () => actions.removeTab(index) }
 					  ]
 			    });
         }

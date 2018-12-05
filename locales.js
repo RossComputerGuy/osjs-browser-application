@@ -4,7 +4,11 @@ const en_US = {
   TITLE: 'Browser',
   CLOSE: 'Close',
   QUIT: 'Quit',
-  REFRESH: 'Refresh'
+  REFRESH: 'Refresh',
+  
+  MENU_FILE: 'File',
+  
+  ACTIONS_GO: 'Go'
 };
 
 module.exports = {en_US, en_EN: en_US };

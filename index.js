@@ -13,7 +13,7 @@ const HTMLCollectionIndexOf = (coll,elem) => {
 };
 
 class BrowserTab {
-  constructor(url,win,proc,core,_) {
+  constructor(actions,url,win,proc,core,_,index) {
     if(url.split(':')[0] == 'about') url = proc.resource('/src/about/'+url.split(':')[1]+'.html');
     else url = proc.resource('/proxy/'+url);
     this.h = h(BoxContainer,{ grow: 1 },[h(Iframe,{
@@ -30,12 +30,14 @@ class BrowserTab {
         this.document = ev.target.contentDocument;
         this.window = ev.target.contentWindow;
         this.title = this.document.title;
+        if(actions) actions.updateTab(this);
       }
     })]);
     this.log = [];
     this.win = win;
     this.url = url;
     this.title = _('NEWTAB');
+    this.index = index;
   }
 }
 
@@ -54,7 +56,7 @@ const register = (core,args,options,metadata) => {
       url: proc.args.url || 'about:newtab',
       tab: 0,
       tabs: [
-        new BrowserTab(proc.args.url || 'about:newtab',win,proc,core,_)
+        new BrowserTab(null,proc.args.url || 'about:newtab',win,proc,core,_,0)
       ]
     },{
       setTab: i => state => ({
@@ -62,14 +64,18 @@ const register = (core,args,options,metadata) => {
         url: state.url,
         tab: i
       }),
-      addTab: () => state => ({
+      addTab: () => (state,actions) => ({
         tabs: [
           ...state.tabs,
-          new BrowserTab('about:newtab',win,proc,core,_)
+          new BrowserTab(actions,'about:newtab',win,proc,core,_,state.tabs.length)
         ],
         url: state.url,
         tab: state.tab
       }),
+      updateTab: tab => (state,actions) => {
+        state.tabs[tab.index] = tab;
+        return state;
+      },
       removeTab: i => state => {
         if(state.tabs.length == 1) proc.destroy();
         return {
@@ -79,12 +85,8 @@ const register = (core,args,options,metadata) => {
         };
       },
       loadURL: () => (state,actions) => {
-        state.tabs[state.tab] = new BrowserTab(state.url,win,proc,core,_);
-        return {
-          tabs: state.tabs,
-          url: state.url,
-          tab: state.tab
-        }
+        state.tabs[state.tab] = new BrowserTab(actions,state.url,win,proc,core,_,state.tab);
+        return state;
       },
 			menuFile: ev => (state,actions) => {
 				core.make('osjs/contextmenu').show({
@@ -106,10 +108,10 @@ const register = (core,args,options,metadata) => {
       getState: () => state => state
     },(state,actions) => h(Box,{ grow: 1, padding: false },[
       h(Menubar,{},[
-        h(MenubarItem,{ onclick: actions.menuFile },'File')
+        h(MenubarItem,{ onclick: actions.menuFile },_('MENU_FILE'))
       ]),
       h(BoxContainer,{},[
-        h(Button,{ onclick: () => actions.loadURL() },'Go'),
+        h(Button,{ onclick: () => actions.loadURL() },_('ACTIONS_GO')),
         h(TextField,{
           onchange: ev => {
             actions.setInput({ name: 'url', value: ev.target.value });
@@ -119,10 +121,12 @@ const register = (core,args,options,metadata) => {
         })
       ]),
       h(Tabs,{
+        key: state.tab,
+        selectedIndex: state.tab,
         labels: state.tabs.map(item => item.title),
-        onchage: (ev,index,label) => actions.setTab(index),
+        onchage: (ev,index,label) => actions.setInput({ name: 'tab', value: index }),
         oncontextmenu: (ev,index,label) => {
-				  core.make("osjs/contextmenu").show({
+				  core.make('osjs/contextmenu').show({
 					  position: ev.target,
 					  menu: [
 					    { label: _('NEWTAB'), onclick: () => actions.addTab() },

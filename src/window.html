@@ -1,0 +1,8 @@
+<!-- OS.js Browser Injected Code Start -->
+<script>
+window.alert = message => window.top.OSjs.make('osjs/dialog','alert',{ message },() => {});
+window.confirm = message => window.top.OSjs.make('osjs/dialog','confirm',{ message },btn => btn == 'yes');
+window.prompt = (message,value) => window.top.OSjs.make('osjs/dialog','prompt',{ message,value },(btn,value) => value);
+navigator.userAgent = 'OS.js/3 (OS.js; rv:1.0.0) OS.js/1.0.0';
+</script>
+<!-- OS.js Browser Injected Code End -->

@@ -1,0 +1,17 @@
+{
+  "type": "application",
+  "name": "Browser",
+  "category": "network",
+  "icon": "icon.png",
+  "server": "server.js",
+  "title": {
+    "en_EN": "Browser"
+  },
+  "description": {
+    "en_EN": "Browser"
+  },
+  "files": [
+    "main.js",
+    "main.css"
+  ]
+}

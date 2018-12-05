@@ -57,6 +57,11 @@ const register = (core,args,options,metadata) => {
         new BrowserTab(proc.args.url || 'about:newtab',win,proc,core,_)
       ]
     },{
+      setTab: i => state => ({
+        tabs: state.tabs,
+        url: state.url,
+        tab: i
+      }),
       addTab: () => state => ({
         tabs: [
           ...state.tabs,
@@ -75,9 +80,14 @@ const register = (core,args,options,metadata) => {
       },
       loadURL: () => (state,actions) => {
         state.tabs[state.tab] = new BrowserTab(state.url,win,proc,core,_);
+        return {
+          tabs: state.tabs,
+          url: state.url,
+          tab: state.tab
+        }
       },
 			menuFile: ev => (state,actions) => {
-				core.make("osjs/contextmenu").show({
+				core.make('osjs/contextmenu').show({
 					position: ev.target,
 					menu: [
 					  { label: _('REFRESH'), onclick: () => state.tabs[state.tab].window.location.reload() },
@@ -100,13 +110,17 @@ const register = (core,args,options,metadata) => {
       ]),
       h(BoxContainer,{},[
         h(Button,{ onclick: () => actions.loadURL() },'Go'),
-        h(TextField,{ onchange: ev => {
-          actions.setInput({ name: 'url', value: ev.target.value });
-          actions.loadURL();
-        } })
+        h(TextField,{
+          onchange: ev => {
+            actions.setInput({ name: 'url', value: ev.target.value });
+            actions.loadURL();
+          },
+          value: state.url
+        })
       ]),
       h(Tabs,{
         labels: state.tabs.map(item => item.title),
+        onchage: (ev,index,label) => actions.setTab(index),
         oncontextmenu: (ev,index,label) => {
 				  core.make("osjs/contextmenu").show({
 					  position: ev.target,

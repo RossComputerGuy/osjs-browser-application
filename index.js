@@ -53,7 +53,7 @@ const register = (core,args,options,metadata) => {
     position: {left: 700,top: 200}
   }).on('destroy',() => proc.destroy()).render(($content,win) => {
     app({
-      url: proc.args.url || 'about:newtab',
+      url: proc.args.url || core.config('webbrowser.homepage') || 'about:newtab',
       tab: 0,
       tabs: [
         new BrowserTab(null,proc.args.url || 'about:newtab',proc,core,_,0)
